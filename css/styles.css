@@ -671,10 +671,10 @@ main {
   background-color: var(--card-bg-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
-  width: 90%;
-  max-width: 800px;
-  margin: 60px auto;
-  max-height: calc(100vh - 120px);
+  width: 95vw;
+  max-width: 1800px;
+  margin: 40px auto;
+  max-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
   animation: modalFadeIn 0.3s ease;
@@ -1206,8 +1206,9 @@ input:checked + .toggle-slider:before {
   }
   
   .paper-modal-content {
-    width: 95%;
-    max-height: 85vh;
+    width: 100vw;
+    max-height: 90vh;
+    margin: 20px auto;
   }
   
   .paper-sections {

@@ -1,0 +1,93 @@
+# AI 提示词配置文件
+# 支持多个命名模板，可根据 arXiv 分类自动选择或手动指定
+
+templates:
+  # 通用模板（适用于计算机科学等领域）
+  default:
+    name: "通用版"
+    description: "适用于 cs.CV, cs.CL, cs.AI 等计算机科学论文"
+    system_prompt: |
+      You are a professional paper analyst.
+      You should not respond too long output.
+      Your output should in {language}.
+      Focus on: problem definition, methodology, experiments, and conclusions.
+    user_prompt: |
+      Please analyze the following paper abstract.
+
+      Title: {title}
+      Authors: {authors}
+      Abstract:
+      {content}
+
+      Provide a concise analysis covering:
+      1. What problem does this paper solve?
+      2. What is the key methodology or approach?
+      3. What are the main results and contributions?
+      4. What are the limitations and future work?
+
+  # 数学分析专用模板
+  math_ap:
+    name: "数学分析版"
+    description: "专为 math.AP（分析偏微分方程）设计，强调数学结构和证明技巧"
+    system_prompt: |
+      You are a professional mathematician specializing in mathematical analysis and PDE theory.
+      Your output should be in {language}.
+      Be precise and rigorous in your analysis.
+      Focus on mathematical structure, theorems, proof techniques, and theoretical contributions.
+    user_prompt: |
+      Please analyze this mathematical analysis paper in detail.
+
+      Title: {title}
+      Authors: {authors}
+      Abstract:
+      {content}
+
+      Provide a comprehensive analysis including:
+      1. **Research Problem**: What mathematical problem or PDE system is being studied?
+      2. **Key Theorems**: What are the main results or theorems proved in this paper?
+      3. **Mathematical Techniques**: What analytical or numerical methods are used?
+         (e.g., Sobolev spaces, energy estimates, fixed point theorems, spectral analysis)
+      4. **Innovation**: What is the main technical contribution or breakthrough?
+      5. **Mathematical Significance**: Why are these results important for the field?
+
+  # 数学通用模板
+  math_general:
+    name: "数学通用版"
+    description: "适用于其他数学分类（math.NA, math.FA 等）"
+    system_prompt: |
+      You are a professional mathematician.
+      Your output should be in {language}.
+      Focus on mathematical rigor, definitions, theorems, and proofs.
+    user_prompt: |
+      Analyze this mathematics paper:
+
+      Title: {title}
+      Authors: {authors}
+      Abstract:
+      {content}
+
+      Cover:
+      1. Main mathematical problem or conjecture
+      2. Key theorems and their significance
+      3. Proof techniques and methodologies
+      4. Connection to existing literature
+      5. Mathematical contributions and novelty
+
+# 输出结构定义
+output_structure:
+  tldr: "一句话总结论文核心内容"
+  motivation: "研究动机和要解决的数学/技术问题"
+  method: "使用的方法、技术或证明技巧（数学论文强调理论工具）"
+  result: "主要结果、定理或实验发现"
+  conclusion: "结论、意义和未来研究方向"
+
+# 分类到模板的映射规则
+category_mapping:
+  math.AP: "math_ap"
+  math.NA: "math_general"
+  math.FA: "math_general"
+  cs.CV: "default"
+  cs.CL: "default"
+  cs.AI: "default"
+  cs.GR: "default"
+  cs.LG: "default"

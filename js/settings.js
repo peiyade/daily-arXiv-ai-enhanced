@@ -1,7 +1,14 @@
+// 全局变量
+let promptsConfig = null;
+let originalConfig = null;  // 保存原始配置用于重置
+let currentTemplateName = 'default';
+
 document.addEventListener('DOMContentLoaded', () => {
   initSettings();
   initEventListeners();
   fetchGitHubStats();
+  // 加载提示词配置
+  loadPromptsConfig();
 });
 
 // 初始化设置，从localStorage加载已保存的设置
@@ -393,4 +400,174 @@ async function fetchGitHubStats() {
     document.getElementById('starCount').textContent = '?';
     document.getElementById('forkCount').textContent = '?';
   }
-} 
+}
+
+// ========== 提示词模板管理功能 ==========
+
+// 加载提示词配置
+async function loadPromptsConfig() {
+  try {
+    const response = await fetch('ai/prompts_config.yaml');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const yamlText = await response.text();
+
+    // 使用 js-yaml 库解析 YAML
+    if (typeof jsyaml !== 'undefined') {
+      promptsConfig = jsyaml.load(yamlText);
+      originalConfig = JSON.parse(JSON.stringify(promptsConfig)); // 深拷贝保存原始配置
+      console.log('提示词配置加载成功:', promptsConfig);
+      renderTemplateTabs();
+      loadTemplate('default');
+    } else {
+      console.error('js-yaml 库未加载');
+      showNotification('js-yaml 库加载失败，无法编辑提示词', 'error');
+    }
+  } catch (error) {
+    console.error('加载提示词配置失败:', error);
+    showNotification('加载提示词配置失败: ' + error.message, 'error');
+  }
+}
+
+// 渲染模板标签
+function renderTemplateTabs() {
+  const tabsContainer = document.getElementById('templateTabs');
+  if (!tabsContainer) return;
+
+  tabsContainer.innerHTML = '';
+
+  if (!promptsConfig || !promptsConfig.templates) {
+    tabsContainer.innerHTML = '<div class="template-tab">无法加载模板</div>';
+    return;
+  }
+
+  Object.keys(promptsConfig.templates).forEach(templateName => {
+    const template = promptsConfig.templates[templateName];
+    const tab = document.createElement('div');
+    tab.className = `template-tab ${templateName === currentTemplateName ? 'active' : ''}`;
+    tab.textContent = template.name || templateName;
+    tab.title = template.description || '';
+    tab.addEventListener('click', () => loadTemplate(templateName));
+    tabsContainer.appendChild(tab);
+  });
+}
+
+// 加载模板到编辑器
+function loadTemplate(templateName) {
+  if (!promptsConfig || !promptsConfig.templates) return;
+
+  currentTemplateName = templateName;
+  const template = promptsConfig.templates[templateName];
+
+  if (!template) {
+    console.error('模板不存在:', templateName);
+    return;
+  }
+
+  // 更新编辑器内容
+  document.getElementById('templateName').value = template.name || templateName;
+  document.getElementById('templateDescription').value = template.description || '';
+  document.getElementById('systemPrompt').value = template.system_prompt || '';
+  document.getElementById('userPrompt').value = template.user_prompt || '';
+
+  // 更新标签状态
+  document.querySelectorAll('.template-tab').forEach(tab => {
+    tab.classList.remove('active');
+    if (tab.textContent === (template.name || templateName)) {
+      tab.classList.add('active');
+    }
+  });
+}
+
+// 保存当前模板
+function saveTemplate() {
+  if (!promptsConfig || !promptsConfig.templates) {
+    showNotification('提示词配置未加载', 'error');
+    return;
+  }
+
+  const template = promptsConfig.templates[currentTemplateName];
+  if (!template) {
+    showNotification('当前模板不存在', 'error');
+    return;
+  }
+
+  // 更新模板内容
+  template.system_prompt = document.getElementById('systemPrompt').value;
+  template.user_prompt = document.getElementById('userPrompt').value;
+
+  showNotification(`模板 "${template.name}" 已保存到内存！请点击"下载配置文件"按钮保存到本地`, 'success');
+}
+
+// 下载配置文件
+function downloadTemplate() {
+  if (!promptsConfig) {
+    showNotification('提示词配置未加载', 'error');
+    return;
+  }
+
+  // 将配置转换为 YAML 字符串
+  const yamlString = jsyaml.dump(promptsConfig, {
+    indent: 2,
+    lineWidth: -1,  // 不限制行宽
+    noRefs: true    // 不使用引用
+  });
+
+  // 创建 Blob
+  const blob = new Blob([yamlString], { type: 'text/yaml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  // 创建下载链接
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'prompts_config.yaml';
+  document.body.appendChild(a);
+  a.click();
+
+  // 清理
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showNotification('配置文件已下载！请将其替换 ai/prompts_config.yaml', 'success');
+}
+
+// 重置当前模板为默认值
+function resetTemplate() {
+  if (!originalConfig || !originalConfig.templates) {
+    showNotification('无法重置：原始配置未保存', 'error');
+    return;
+  }
+
+  if (!confirm(`确定要将 "${currentTemplateName}" 模板重置为默认值吗？此操作将丢失所有未保存的修改。`)) {
+    return;
+  }
+
+  // 从原始配置中恢复
+  promptsConfig.templates[currentTemplateName] = JSON.parse(JSON.stringify(originalConfig.templates[currentTemplateName]));
+
+  // 重新加载到编辑器
+  loadTemplate(currentTemplateName);
+
+  showNotification(`模板 "${currentTemplateName}" 已重置为默认值`, 'info');
+}
+
+// 绑定提示词相关事件
+document.addEventListener('DOMContentLoaded', () => {
+  // 绑定提示词相关事件
+  const saveTemplateBtn = document.getElementById('saveTemplate');
+  if (saveTemplateBtn) {
+    saveTemplateBtn.addEventListener('click', saveTemplate);
+  }
+
+  const downloadTemplateBtn = document.getElementById('downloadTemplate');
+  if (downloadTemplateBtn) {
+    downloadTemplateBtn.addEventListener('click', downloadTemplate);
+  }
+
+  const resetTemplateBtn = document.getElementById('resetTemplate');
+  if (resetTemplateBtn) {
+    resetTemplateBtn.addEventListener('click', resetTemplate);
+  }
+});
+ 

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/settings.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -101,6 +102,50 @@
                                     <div class="tag-input-container">
                                         <input type="text" id="authorInput" class="settings-input" placeholder="Enter an author name and press Enter...">
                                         <button id="addAuthor" class="add-tag-button">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h2 class="keyword-section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor"/>
+                            </svg>
+                            AI 提示词模板
+                        </h2>
+                        <div class="settings-card">
+                            <div class="settings-item">
+                                <div class="prompt-templates-container">
+                                    <div class="template-tabs" id="templateTabs">
+                                        <!-- 动态生成模板标签 -->
+                                    </div>
+                                    <div class="template-editor">
+                                        <div class="template-name-section">
+                                            <label>模板名称</label>
+                                            <input type="text" id="templateName" class="settings-input" placeholder="例如：数学分析版" disabled>
+                                        </div>
+                                        <div class="template-description-section">
+                                            <label>模板描述</label>
+                                            <input type="text" id="templateDescription" class="settings-input" placeholder="描述此模板的用途" disabled>
+                                        </div>
+                                        <div class="template-system-prompt-section">
+                                            <label>系统提示词 (System Prompt)</label>
+                                            <textarea id="systemPrompt" class="settings-textarea" rows="4" placeholder="定义 AI 的角色和行为..."></textarea>
+                                        </div>
+                                        <div class="template-user-prompt-section">
+                                            <label>用户提示词 (User Prompt)</label>
+                                            <textarea id="userPrompt" class="settings-textarea" rows="10" placeholder="分析论文的指令..."></textarea>
+                                        </div>
+                                        <div class="template-actions">
+                                            <button id="saveTemplate" class="save-button">保存模板</button>
+                                            <button id="downloadTemplate" class="download-button">下载配置文件</button>
+                                            <button id="resetTemplate" class="reset-button">重置为默认</button>
+                                        </div>
+                                        <div class="template-note">
+                                            <p>⚠️ 注意：前端修改的模板需要下载配置文件后手动替换 <code>ai/prompts_config.yaml</code> 才能生效</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

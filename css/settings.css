@@ -346,4 +346,214 @@
   .settings-actions button {
     width: 100%;
   }
-} 
+}
+
+/* 提示词编辑器样式 */
+.prompt-templates-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.template-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--border-color, #e2e8f0);
+  padding-bottom: 12px;
+}
+
+.template-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--card-bg-color, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-primary, #1e293b);
+}
+
+.template-tab:hover {
+  background: var(--hover-bg-color, #f1f5f9);
+  transform: translateY(-1px);
+}
+
+.template-tab.active {
+  background: var(--primary-color, #6366f1);
+  color: white;
+  border-color: var(--primary-color, #6366f1);
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+
+.template-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.template-name-section,
+.template-description-section,
+.template-system-prompt-section,
+.template-user-prompt-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.template-name-section label,
+.template-description-section label,
+.template-system-prompt-section label,
+.template-user-prompt-section label {
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  font-size: 14px;
+}
+
+.template-name-section input,
+.template-description-section input {
+  background-color: var(--input-bg-color, #f8fafc);
+  color: var(--text-secondary, #64748b);
+  cursor: not-allowed;
+}
+
+.settings-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--radius-sm, 6px);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 120px;
+  background-color: var(--input-bg-color, #ffffff);
+  color: var(--text-primary, #1e293b);
+  transition: all 0.2s ease;
+}
+
+.settings-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background-color: var(--card-bg-color, #ffffff);
+}
+
+.settings-textarea::placeholder {
+  color: var(--text-secondary, #94a3b8);
+}
+
+.template-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.save-button,
+.download-button,
+.reset-button {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm, 6px);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-button {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.save-button:hover {
+  background: var(--primary-hover-color, #4f46e5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
+}
+
+.download-button {
+  background: var(--success-color, #10b981);
+  color: white;
+}
+
+.download-button:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+.reset-button {
+  background: var(--card-bg-color, #f8fafc);
+  color: var(--text-primary, #1e293b);
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.reset-button:hover {
+  background: var(--hover-bg-color, #f1f5f9);
+  transform: translateY(-1px);
+}
+
+.save-button:active,
+.download-button:active,
+.reset-button:active {
+  transform: translateY(1px);
+}
+
+.template-note {
+  padding: 12px 16px;
+  background-color: rgba(251, 191, 36, 0.1);
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--radius-sm, 6px);
+  margin-top: 8px;
+}
+
+.template-note p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-primary, #1e293b);
+  line-height: 1.5;
+}
+
+.template-note code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
+  color: #d97706;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .template-tabs {
+    gap: 6px;
+  }
+
+  .template-tab {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .template-actions {
+    flex-direction: column;
+  }
+
+  .save-button,
+  .download-button,
+  .reset-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .settings-textarea {
+    font-size: 12px;
+    padding: 12px;
+  }
+}
+ 
