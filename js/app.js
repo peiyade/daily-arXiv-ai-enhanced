@@ -11,6 +11,7 @@ let activeAuthors = []; // 存储激活的作者
 let userAuthors = []; // 存储用户的作者
 let currentPaperIndex = 0; // 当前查看的论文索引
 let currentFilteredPapers = []; // 当前过滤后的论文列表
+let promptsConfig = null; // 存储提示词配置
 
 // 加载用户的关键词设置
 function loadUserKeywords() {
@@ -233,19 +234,76 @@ function toggleAuthorFilter(author) {
       }, 1000);
     }
   });
-  
+
   // 重新渲染论文列表
   renderPapers();
+}
+
+// 加载提示词配置
+async function loadPromptsConfig() {
+  try {
+    const response = await fetch('ai/prompts_config.yaml');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const yamlText = await response.text();
+
+    // 使用 js-yaml 库解析 YAML
+    if (typeof jsyaml !== 'undefined') {
+      promptsConfig = jsyaml.load(yamlText);
+      console.log('提示词配置加载成功:', promptsConfig);
+    } else {
+      console.error('js-yaml 库未加载');
+    }
+  } catch (error) {
+    console.error('加载提示词配置失败:', error);
+    // 使用默认配置作为后备
+    promptsConfig = null;
+  }
+}
+
+// 根据论文分类获取 Kimi 提示词
+function getKimiPromptForPaper(categories) {
+  if (!promptsConfig || !promptsConfig.templates) {
+    // 后备方案：使用默认提示词
+    return `请你阅读这篇文章{pdf_url},总结一下这篇文章解决的问题、相关工作、研究方法、做了什么实验及其结果、结论，最后整体总结一下这篇文章的内容`;
+  }
+
+  // 查找匹配的模板
+  const categoryMapping = promptsConfig.category_mapping || {};
+  const templates = promptsConfig.templates || {};
+
+  for (const category of categories) {
+    const templateName = categoryMapping[category];
+    if (templateName && templates[templateName]) {
+      const template = templates[templateName];
+      if (template.kimi_prompt) {
+        console.log(`使用模板 "${template.name}" 的 Kimi 提示词`);
+        return template.kimi_prompt;
+      }
+    }
+  }
+
+  // 没有找到匹配，使用默认模板
+  if (templates.default && templates.default.kimi_prompt) {
+    return templates.default.kimi_prompt;
+  }
+
+  // 最终后备方案
+  return `请你阅读这篇文章{pdf_url},总结一下这篇文章解决的问题、相关工作、研究方法、做了什么实验及其结果、结论，最后整体总结一下这篇文章的内容`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
   
   fetchGitHubStats();
-  
+
+  // 加载提示词配置
+  loadPromptsConfig();
+
   // 加载用户关键词
   loadUserKeywords();
-  
+
   // 加载用户作者
   loadUserAuthors();
   
@@ -953,9 +1011,16 @@ function showPaperDetails(paper, paperIndex) {
   document.getElementById('paperLink').href = paper.url;
   document.getElementById('pdfLink').href = paper.url.replace('abs', 'pdf');
   document.getElementById('htmlLink').href = paper.url.replace('abs', 'html');
-  // 提示词来自：https://papers.cool/
-  prompt = `请你阅读这篇文章${paper.url.replace('abs', 'pdf')},总结一下这篇文章解决的问题、相关工作、研究方法、做了什么实验及其结果、结论，最后整体总结一下这篇文章的内容`
-  document.getElementById('kimiChatLink').href = `https://www.kimi.com/_prefill_chat?prefill_prompt=${prompt}&system_prompt=你是一个学术助手，后面的对话将围绕着以下论文内容进行，已经通过链接给出了论文的PDF和论文已有的FAQ。用户将继续向你咨询论文的相关问题，请你作出专业的回答，不要出现第一人称，当涉及到分点回答时，鼓励你以markdown格式输出。&send_immediately=true&force_search=true`;
+
+  // 根据论文分类获取合适的 Kimi 提示词
+  const kimiPromptTemplate = getKimiPromptForPaper(paper.categories || []);
+  const pdfUrl = paper.url.replace('abs', 'pdf');
+  const prompt = kimiPromptTemplate.replace('{pdf_url}', pdfUrl);
+
+  // system_prompt 也可以根据分类调整，但暂时保持一致
+  const systemPrompt = "你是一个学术助手，后面的对话将围绕着以下论文内容进行，已经通过链接给出了论文的PDF和论文已有的FAQ。用户将继续向你咨询论文的相关问题，请你作出专业的回答，不要出现第一人称，当涉及到分点回答时，鼓励你以markdown格式输出。";
+
+  document.getElementById('kimiChatLink').href = `https://www.kimi.com/_prefill_chat?prefill_prompt=${encodeURIComponent(prompt)}&system_prompt=${encodeURIComponent(systemPrompt)}&send_immediately=true&force_search=true`;
   
   // 更新论文位置信息
   const paperPosition = document.getElementById('paperPosition');

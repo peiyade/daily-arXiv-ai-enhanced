@@ -24,6 +24,13 @@ templates:
       2. What is the key methodology or approach?
       3. What are the main results and contributions?
       4. What are the limitations and future work?
+    kimi_prompt: |
+      请你阅读这篇文章{pdf_url}，总结一下这篇文章：
+      1. 解决的问题：这篇文章要解决什么核心问题？
+      2. 研究方法：使用了什么方法或技术？
+      3. 实验及结果：做了什么实验，结果如何？
+      4. 主要贡献：文章的核心创新点是什么？
+      5. 结论和局限：整体总结及存在的问题。
 
   # 数学分析专用模板
   math_ap:
@@ -31,7 +38,7 @@ templates:
     description: "专为 math.AP（分析偏微分方程）设计，强调数学结构和证明技巧"
     system_prompt: |
       You are a professional mathematician specializing in mathematical analysis and PDE theory.
-      Your output should be in {language}.
+      Your output should in {language}.
       Be precise and rigorous in your analysis.
       Focus on mathematical structure, theorems, proof techniques, and theoretical contributions.
     user_prompt: |
@@ -49,6 +56,17 @@ templates:
          (e.g., Sobolev spaces, energy estimates, fixed point theorems, spectral analysis)
       4. **Innovation**: What is the main technical contribution or breakthrough?
       5. **Mathematical Significance**: Why are these results important for the field?
+    kimi_prompt: |
+      你是一位专业的数学分析师，擅长数学分析和偏微分方程理论。请仔细阅读这篇数学论文{pdf_url}，从数学专业角度进行深入分析：
+
+      1. **数学问题**：这篇文章研究什么数学问题或偏微分方程系统？
+      2. **主要定理**：文章证明了哪些核心定理或命题？
+      3. **数学工具**：使用了什么分析方法或技巧？
+         （例如：Sobolev空间理论、能量估计、不动点定理、谱分析、微局部分析等）
+      4. **技术难点**：证明过程中的关键难点和创新点在哪里？
+      5. **数学意义**：这些结果对该领域有什么重要意义？
+
+      请以专业、严谨的方式回答，突出数学结构和证明思路。
 
   # 数学通用模板
   math_general:
@@ -56,7 +74,7 @@ templates:
     description: "适用于其他数学分类（math.NA, math.FA 等）"
     system_prompt: |
       You are a professional mathematician.
-      Your output should be in {language}.
+      Your output should in {language}.
       Focus on mathematical rigor, definitions, theorems, and proofs.
     user_prompt: |
       Analyze this mathematics paper:
@@ -72,6 +90,16 @@ templates:
       3. Proof techniques and methodologies
       4. Connection to existing literature
       5. Mathematical contributions and novelty
+    kimi_prompt: |
+      你是一位专业数学家。请阅读这篇数学论文{pdf_url}，从数学角度进行分析：
+
+      1. **核心问题**：研究什么数学问题或猜想？
+      2. **主要定理**：证明了哪些关键定理？
+      3. **证明方法**：使用了什么数学工具和证明技巧？
+      4. **文献关联**：与现有文献的联系是什么？
+      5. **数学贡献**：对数学领域有什么新颖贡献？
+
+      请以严谨的数学语言进行分析。
 
 # 输出结构定义
 output_structure:
