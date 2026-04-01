@@ -3,6 +3,7 @@ import re
 
 class Structure(BaseModel):
     tldr: str = Field(description="generate a too long; didn't read summary")
+    translated_abstract: str = Field(description="complete Chinese translation of the paper abstract")
     motivation: str = Field(description="describe the motivation in this paper")
     method: str = Field(description="method of this paper")
     result: str = Field(description="result of this paper")

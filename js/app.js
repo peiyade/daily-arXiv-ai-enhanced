@@ -984,8 +984,9 @@ function showPaperDetails(paper, paperIndex) {
         ${paper.result ? `<div class="paper-section"><h4>Result</h4><p>${highlightedResult}</p></div>` : ''}
         ${paper.conclusion ? `<div class="paper-section"><h4>Conclusion</h4><p>${highlightedConclusion}</p></div>` : ''}
       </div>
-      
-      ${highlightedAbstract ? `<h3>Abstract</h3><p class="original-abstract">${highlightedAbstract}</p>` : ''}
+
+      ${paper.translated_abstract ? `<h3>摘要翻译</h3><p class="translated-abstract">${paper.translated_abstract}</p>` : ''}
+      ${highlightedAbstract ? `<h3>Abstract (原文)</h3><p class="original-abstract">${highlightedAbstract}</p>` : ''}
       
       <div class="pdf-preview-section">
         <div class="pdf-header">

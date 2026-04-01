@@ -19,11 +19,13 @@ templates:
       Abstract:
       {content}
 
-      Provide a concise analysis covering:
-      1. What problem does this paper solve?
-      2. What is the key methodology or approach?
-      3. What are the main results and contributions?
-      4. What are the limitations and future work?
+      Provide:
+      1. **translated_abstract**: Complete Chinese translation of the abstract
+      2. **tldr**: One-sentence summary
+      3. **motivation**: What problem does this paper solve?
+      4. **method**: Key methodology or approach
+      5. **result**: Main results and contributions
+      6. **conclusion**: Limitations and future work
     kimi_prompt: |
       请你阅读这篇文章{pdf_url}，总结一下这篇文章：
       1. 解决的问题：这篇文章要解决什么核心问题？
@@ -50,12 +52,13 @@ templates:
       {content}
 
       Provide a comprehensive analysis including:
-      1. **Research Problem**: What mathematical problem or PDE system is being studied?
-      2. **Key Theorems**: What are the main results or theorems proved in this paper?
-      3. **Mathematical Techniques**: What analytical or numerical methods are used?
+      1. **translated_abstract**: Complete Chinese translation of the mathematical abstract
+      2. **tldr**: One-sentence summary in Chinese
+      3. **motivation**: What mathematical problem or PDE system is being studied?
+      4. **method**: What analytical or numerical methods are used?
          (e.g., Sobolev spaces, energy estimates, fixed point theorems, spectral analysis)
-      4. **Innovation**: What is the main technical contribution or breakthrough?
-      5. **Mathematical Significance**: Why are these results important for the field?
+      5. **result**: Main theorems or results proved
+      6. **conclusion**: Why are these results important for the field?
     kimi_prompt: |
       你是一位专业的数学分析师，擅长数学分析和偏微分方程理论。请仔细阅读这篇数学论文{pdf_url}，从数学专业角度进行深入分析：
 
@@ -84,12 +87,13 @@ templates:
       Abstract:
       {content}
 
-      Cover:
-      1. Main mathematical problem or conjecture
-      2. Key theorems and their significance
-      3. Proof techniques and methodologies
-      4. Connection to existing literature
-      5. Mathematical contributions and novelty
+      Provide:
+      1. **translated_abstract**: Complete Chinese translation of the abstract
+      2. **tldr**: One-sentence summary in Chinese
+      3. **motivation**: Main mathematical problem or conjecture
+      4. **method**: Proof techniques and methodologies
+      5. **result**: Key theorems and their significance
+      6. **conclusion**: Mathematical contributions and novelty
     kimi_prompt: |
       你是一位专业数学家。请阅读这篇数学论文{pdf_url}，从数学角度进行分析：
 
@@ -104,6 +108,7 @@ templates:
 # 输出结构定义
 output_structure:
   tldr: "一句话总结论文核心内容"
+  translated_abstract: "摘要的完整中文翻译"
   motivation: "研究动机和要解决的数学/技术问题"
   method: "使用的方法、技术或证明技巧（数学论文强调理论工具）"
   result: "主要结果、定理或实验发现"
