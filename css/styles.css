@@ -2162,3 +2162,235 @@ footer {
   display: block;
   margin: 0 auto;
 }
+/* ========== 论文标记系统样式 ========== */
+
+/* 卡片上的标记徽章 */
+.mark-badges {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  font-size: 12px;
+  z-index: 2;
+}
+
+/* 卡片上的标记按钮 */
+.paper-mark-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.mark-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.paper-card-footer:hover .mark-btn {
+  opacity: 1;
+}
+
+.mark-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 标记面板 */
+.paper-mark-panel {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-md);
+}
+
+.paper-mark-panel h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 状态选择部分 */
+.mark-status-section,
+.mark-priority-section,
+.mark-tags-section,
+.mark-notes-section {
+  margin-bottom: 15px;
+}
+
+.mark-status-section label,
+.mark-priority-section label,
+.mark-tags-section label,
+.mark-notes-section label {
+  font-weight: 600;
+  margin-right: 10px;
+  display: inline-block;
+  min-width: 120px;
+}
+
+.status-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  background: white;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+}
+
+.status-btn:hover {
+  background: var(--hover-bg-color);
+}
+
+.status-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* 优先级星星 */
+.priority-stars {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.priority-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.priority-btn:hover {
+  opacity: 0.7;
+  transform: scale(1.1);
+}
+
+.priority-btn.active {
+  opacity: 1;
+}
+
+/* 标签显示 */
+.tags-display {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.paper-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.remove-tag {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.remove-tag:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.no-tags {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* 添加标签表单 */
+.add-tag-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag-input {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.add-tag-button {
+  padding: 6px 12px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.add-tag-button:hover {
+  background: var(--primary-hover-color);
+}
+
+/* 笔记部分 */
+.notes-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.save-notes-button {
+  padding: 8px 16px;
+  background: var(--success-color, #10b981);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.save-notes-button:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}

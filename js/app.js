@@ -12,6 +12,8 @@ let userAuthors = []; // 存储用户的作者
 let currentPaperIndex = 0; // 当前查看的论文索引
 let currentFilteredPapers = []; // 当前过滤后的论文列表
 let promptsConfig = null; // 存储提示词配置
+let paperMarks = {}; // 存储论文标记数据 {paperId: {status, priority, tags, notes, markedAt}}
+let currentFilter = 'all'; // 当前筛选状态: all | to_study | read
 
 // 加载用户的关键词设置
 function loadUserKeywords() {
@@ -293,6 +295,102 @@ function getKimiPromptForPaper(categories) {
   return `请你阅读这篇文章{pdf_url},总结一下这篇文章解决的问题、相关工作、研究方法、做了什么实验及其结果、结论，最后整体总结一下这篇文章的内容`;
 }
 
+// ========== 论文标记管理功能 ==========
+
+// 加载论文标记数据
+function loadPaperMarks() {
+  const saved = localStorage.getItem('paperMarks');
+  if (saved) {
+    try {
+      paperMarks = JSON.parse(saved);
+      console.log('论文标记数据已加载:', Object.keys(paperMarks).length, '篇');
+    } catch (e) {
+      console.error('加载论文标记失败:', e);
+      paperMarks = {};
+    }
+  }
+}
+
+// 保存论文标记数据
+function savePaperMarks() {
+  localStorage.setItem('paperMarks', JSON.stringify(paperMarks));
+}
+
+// 获取论文标记
+function getPaperMark(paperId) {
+  return paperMarks[paperId] || { status: 'unread', priority: 0, tags: [], notes: '' };
+}
+
+// 标记论文状态
+function markPaperStatus(paperId, status) {
+  if (!paperMarks[paperId]) {
+    paperMarks[paperId] = { status: 'unread', priority: 0, tags: [], notes: '', markedAt: new Date().toISOString() };
+  }
+  paperMarks[paperId].status = status;
+  paperMarks[paperId].markedAt = new Date().toISOString();
+
+  // 如果不是待深究状态，清除优先级
+  if (status !== 'to_study') {
+    paperMarks[paperId].priority = 0;
+  }
+
+  savePaperMarks();
+  renderPapers(); // 重新渲染列表
+}
+
+// 设置论文优先级
+function setPaperPriority(paperId, priority) {
+  if (!paperMarks[paperId]) {
+    paperMarks[paperId] = { status: 'unread', priority: 0, tags: [], notes: '', markedAt: new Date().toISOString() };
+  }
+  paperMarks[paperId].priority = priority;
+  paperMarks[paperId].status = 'to_study'; // 设置优先级时自动标记为待深究
+  savePaperMarks();
+  renderPapers();
+}
+
+// 添加标签
+function addPaperTag(paperId, tag) {
+  if (!paperMarks[paperId]) {
+    paperMarks[paperId] = { status: 'unread', priority: 0, tags: [], notes: '', markedAt: new Date().toISOString() };
+  }
+  if (!paperMarks[paperId].tags.includes(tag)) {
+    paperMarks[paperId].tags.push(tag);
+    savePaperMarks();
+  }
+}
+
+// 删除标签
+function removePaperTag(paperId, tag) {
+  if (paperMarks[paperId] && paperMarks[paperId].tags) {
+    paperMarks[paperId].tags = paperMarks[paperId].tags.filter(t => t !== tag);
+    savePaperMarks();
+  }
+}
+
+// 添加笔记
+function setPaperNotes(paperId, notes) {
+  if (!paperMarks[paperId]) {
+    paperMarks[paperId] = { status: 'unread', priority: 0, tags: [], notes: '', markedAt: new Date().toISOString() };
+  }
+  paperMarks[paperId].notes = notes;
+  savePaperMarks();
+}
+
+// 导出标记数据
+function exportPaperMarks() {
+  const dataStr = JSON.stringify(paperMarks, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `paper-marks-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
   
@@ -300,6 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 加载提示词配置
   loadPromptsConfig();
+
+  // 加载论文标记
+  loadPaperMarks();
 
   // 加载用户关键词
   loadUserKeywords();
@@ -870,18 +971,24 @@ function renderPapers() {
       : paper.title;
     
     // 高亮摘要中的关键词
-    const highlightedSummary = activeKeywords.length > 0 
-      ? highlightMatches(paper.summary, activeKeywords, 'keyword-highlight') 
+    const highlightedSummary = activeKeywords.length > 0
+      ? highlightMatches(paper.summary, activeKeywords, 'keyword-highlight')
       : paper.summary;
-    
+
     // 高亮作者中的匹配
-    const highlightedAuthors = activeAuthors.length > 0 
-      ? highlightMatches(paper.authors, activeAuthors, 'author-highlight') 
+    const highlightedAuthors = activeAuthors.length > 0
+      ? highlightMatches(paper.authors, activeAuthors, 'author-highlight')
       : paper.authors;
+
+    // 获取论文标记状态
+    const mark = getPaperMark(paper.id);
+    const statusBadge = mark.status === 'to_study' ? '🔵' : mark.status === 'read' ? '✅' : '';
+    const priorityStars = mark.priority > 0 ? '⭐'.repeat(mark.priority) : '';
     
     paperCard.innerHTML = `
       <div class="paper-card-index">${index + 1}</div>
       ${paper.isMatched ? '<div class="match-badge" title="匹配您的搜索条件"></div>' : ''}
+      ${statusBadge || priorityStars ? `<div class="mark-badges">${statusBadge}${priorityStars}</div>` : ''}
       <div class="paper-card-header">
         <h3 class="paper-card-title">${highlightedTitle}</h3>
         <p class="paper-card-authors">${highlightedAuthors}</p>
@@ -893,11 +1000,32 @@ function renderPapers() {
         <p class="paper-card-summary">${highlightedSummary}</p>
         <div class="paper-card-footer">
           <span class="paper-card-date">${formatDate(paper.date)}</span>
+          <div class="paper-mark-buttons">
+            <button class="mark-btn mark-read" data-paper-id="${paper.id}" title="标记为已读过">✅</button>
+            <button class="mark-btn mark-study" data-paper-id="${paper.id}" title="标记为待深究">🔵</button>
+            <button class="mark-btn mark-clear" data-paper-id="${paper.id}" title="清除标记">✖</button>
+          </div>
           <span class="paper-card-link">Details</span>
         </div>
       </div>
     `;
-    
+
+    // 绑定标记按钮事件（阻止冒泡，避免触发卡片点击）
+    const markButtons = paperCard.querySelectorAll('.mark-btn');
+    markButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const paperId = btn.dataset.paperId;
+        if (btn.classList.contains('mark-read')) {
+          markPaperStatus(paperId, 'read');
+        } else if (btn.classList.contains('mark-study')) {
+          markPaperStatus(paperId, 'to_study');
+        } else if (btn.classList.contains('mark-clear')) {
+          markPaperStatus(paperId, 'unread');
+        }
+      });
+    });
+
     paperCard.addEventListener('click', () => {
       currentPaperIndex = index; // 记录当前点击的论文索引
       showPaperDetails(paper, index + 1);
@@ -987,7 +1115,38 @@ function showPaperDetails(paper, paperIndex) {
 
       ${paper.translated_abstract ? `<h3>摘要翻译</h3><p class="translated-abstract">${paper.translated_abstract}</p>` : ''}
       ${highlightedAbstract ? `<h3>Abstract (原文)</h3><p class="original-abstract">${highlightedAbstract}</p>` : ''}
-      
+
+      <div class="paper-mark-panel">
+        <h3>📌 论文标记</h3>
+        <div class="mark-status-section">
+          <label>状态：</label>
+          <button class="status-btn ${mark.status === 'unread' ? 'active' : ''}" data-status="unread">⚪ 未标记</button>
+          <button class="status-btn ${mark.status === 'read' ? 'active' : ''}" data-status="read">✅ 已读过</button>
+          <button class="status-btn ${mark.status === 'to_study' ? 'active' : ''}" data-status="to_study">🔵 待深究</button>
+        </div>
+        <div class="mark-priority-section">
+          <label>优先级（仅待深究）：</label>
+          <div class="priority-stars">
+            ${[1,2,3,4,5].map(n => `<button class="priority-btn ${mark.priority >= n ? 'active' : ''}" data-priority="${n}">⭐</button>`).join('')}
+          </div>
+        </div>
+        <div class="mark-tags-section">
+          <label>标签：</label>
+          <div class="tags-display">
+            ${mark.tags && mark.tags.length > 0 ? mark.tags.map(tag => `<span class="paper-tag">${tag} <button class="remove-tag" data-tag="${tag}">×</button></span>`).join('') : '<span class="no-tags">暂无标签</span>'}
+          </div>
+          <div class="add-tag-form">
+            <input type="text" id="newTagInput" class="tag-input" placeholder="添加标签（如：#能量估计）" />
+            <button id="addTagBtn" class="add-tag-button">添加</button>
+          </div>
+        </div>
+        <div class="mark-notes-section">
+          <label>笔记：</label>
+          <textarea id="paperNotes" class="notes-textarea" placeholder="记录你的想法...">${mark.notes || ''}</textarea>
+          <button id="saveNotesBtn" class="save-notes-button">保存笔记</button>
+        </div>
+      </div>
+
       <div class="pdf-preview-section">
         <div class="pdf-header">
           <h3>PDF Preview</h3>
@@ -1022,7 +1181,67 @@ function showPaperDetails(paper, paperIndex) {
   const systemPrompt = "你是一个学术助手，后面的对话将围绕着以下论文内容进行，已经通过链接给出了论文的PDF和论文已有的FAQ。用户将继续向你咨询论文的相关问题，请你作出专业的回答，不要出现第一人称，当涉及到分点回答时，鼓励你以markdown格式输出。";
 
   document.getElementById('kimiChatLink').href = `https://www.kimi.com/_prefill_chat?prefill_prompt=${encodeURIComponent(prompt)}&system_prompt=${encodeURIComponent(systemPrompt)}&send_immediately=true&force_search=true`;
-  
+
+  // 绑定标记面板事件
+  const markPanel = document.querySelector('.paper-mark-panel');
+
+  // 状态按钮
+  markPanel.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const status = btn.dataset.status;
+      markPaperStatus(paper.id, status);
+      // 重新渲染当前面板以更新UI
+      showPaperDetails(paper, paperIndex);
+    });
+  });
+
+  // 优先级按钮
+  markPanel.querySelectorAll('.priority-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const priority = parseInt(btn.dataset.priority);
+      setPaperPriority(paper.id, priority);
+      showPaperDetails(paper, paperIndex);
+    });
+  });
+
+  // 标签删除
+  markPanel.querySelectorAll('.remove-tag').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag;
+      removePaperTag(paper.id, tag);
+      showPaperDetails(paper, paperIndex);
+    });
+  });
+
+  // 添加标签
+  const addTagBtn = document.getElementById('addTagBtn');
+  const newTagInput = document.getElementById('newTagInput');
+  addTagBtn.addEventListener('click', () => {
+    const tag = newTagInput.value.trim();
+    if (tag) {
+      const formattedTag = tag.startsWith('#') ? tag : '#' + tag;
+      addPaperTag(paper.id, formattedTag);
+      newTagInput.value = '';
+      showPaperDetails(paper, paperIndex);
+    }
+  });
+  newTagInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      addTagBtn.click();
+    }
+  });
+
+  // 保存笔记
+  const saveNotesBtn = document.getElementById('saveNotesBtn');
+  saveNotesBtn.addEventListener('click', () => {
+    const notes = document.getElementById('paperNotes').value;
+    setPaperNotes(paper.id, notes);
+    saveNotesBtn.textContent = '已保存！';
+    setTimeout(() => {
+      saveNotesBtn.textContent = '保存笔记';
+    }, 1500);
+  });
+
   // 更新论文位置信息
   const paperPosition = document.getElementById('paperPosition');
   if (paperPosition && currentFilteredPapers.length > 0) {
