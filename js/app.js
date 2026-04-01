@@ -1095,7 +1095,10 @@ function showPaperDetails(paper, paperIndex) {
   
   // 添加匹配标记
   const matchedPaperClass = paper.isMatched ? 'matched-paper-details' : '';
-  
+
+  // 获取论文标记数据
+  const mark = getPaperMark(paper.id);
+
   const modalContent = `
     <div class="paper-details ${matchedPaperClass}">
       <p><strong>Authors: </strong>${highlightedAuthors}</p>
