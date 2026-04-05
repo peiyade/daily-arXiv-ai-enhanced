@@ -1176,7 +1176,8 @@ function showPaperDetails(paper, paperIndex) {
   document.getElementById('htmlLink').href = paper.url.replace('abs', 'html');
 
   // 根据论文分类获取合适的 Kimi 提示词
-  const kimiPromptTemplate = getKimiPromptForPaper(paper.categories || []);
+  const paperCategories = paper.category || paper.categories || [];
+  const kimiPromptTemplate = getKimiPromptForPaper(paperCategories);
   const pdfUrl = paper.url.replace('abs', 'pdf');
   const prompt = kimiPromptTemplate.replace('{pdf_url}', pdfUrl);
 

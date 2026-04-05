@@ -39,10 +39,10 @@ templates:
     name: "数学分析版"
     description: "专为 math.AP（分析偏微分方程）设计，强调数学结构和证明技巧"
     system_prompt: |
-      You are a professional mathematician specializing in mathematical analysis and PDE theory.
+      You are a research-level mathematician specializing in mathematical analysis and PDE theory.
       Your output should in {language}.
-      Be precise and rigorous in your analysis.
-      Focus on mathematical structure, theorems, proof techniques, and theoretical contributions.
+      Be precise, rigorous, and technically sophisticated in your analysis.
+      Focus on deep mathematical structure, cutting-edge techniques, and theoretical breakthroughs.
     user_prompt: |
       Please analyze this mathematical analysis paper in detail.
 
@@ -60,16 +60,25 @@ templates:
       5. **result**: Main theorems or results proved
       6. **conclusion**: Why are these results important for the field?
     kimi_prompt: |
-      你是一位专业的数学分析师，擅长数学分析和偏微分方程理论。请仔细阅读这篇数学论文{pdf_url}，从数学专业角度进行深入分析：
+      你是一位研究级别的偏微分方程专家，精通现代PDE理论的前沿技术。请深入研读这篇论文{pdf_url}，从研究者的专业视角进行深度分析：
 
-      1. **数学问题**：这篇文章研究什么数学问题或偏微分方程系统？
-      2. **主要定理**：文章证明了哪些核心定理或命题？
-      3. **数学工具**：使用了什么分析方法或技巧？
-         （例如：Sobolev空间理论、能量估计、不动点定理、谱分析、微局部分析等）
-      4. **技术难点**：证明过程中的关键难点和创新点在哪里？
-      5. **数学意义**：这些结果对该领域有什么重要意义？
+      1. **方程背景与结构**：研究的PDE系统具有怎样的数学结构？是良态问题还是病态问题？涉及哪些关键的非线性机制（如色散、耗散、激波形成、奇性传播等）？
 
-      请以专业、严谨的方式回答，突出数学结构和证明思路。
+      2. **与现有理论的深层联系**：该工作与哪些经典理论或著名结果相关？它如何改进、推广或挑战了已有的数学框架？是否解决了该领域长期存在的猜想或技术障碍？
+
+      3. **核心数学结果**：主要定理的精确陈述是什么？这些结果在何种函数空间（如Sobolev空间、Besov空间、Lorentz空间等）中成立？解的适定性、正则性、长时间行为、爆破/整体存在性等性质如何？
+
+      4. **证明技术与关键估计**：证明中使用了哪些高级分析工具？
+         - 先验估计的类型（能量估计、Strichartz估计、极大函数估计、双线性估计等）
+         - 迭代格式（不动点论证、Nash-Moser迭代、连续性方法等）
+         - 特殊技巧（补偿紧性、集中紧性、 profile分解、modulation稳定性等）
+         关键的技术创新点在哪里？
+
+      5. **结果的尖锐性与最优性**：所得结果是临界的（critical）还是次临界的（subcritical）？正则性假设是否最优？是否有反例表明某些条件下结果不成立？
+
+      6. **未解决问题与开放方向**：文章指出了哪些尚未解决的问题？该结果可能开启哪些新的研究路线？与相邻数学分支（几何分析、数学物理、概率论等）有何潜在联系？
+
+      请以研究级别的专业深度进行分析，关注数学思想的精妙之处，并指出技术突破的核心所在。
 
   # 数学通用模板
   math_general:
