@@ -64,6 +64,75 @@
                 </div>
 
                 <div class="settings-content">
+                    <!-- 论文管理模块 -->
+                    <div class="settings-section">
+                        <h2 class="keyword-section-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM16 18H8V16H16V18ZM16 14H8V12H16V14ZM13 9V3.5L18.5 9H13Z" fill="currentColor"/>
+                            </svg>
+                            Paper Management
+                        </h2>
+                        <div class="settings-card">
+                            <div class="paper-stats-container">
+                                <div class="paper-stat-card">
+                                    <span class="stat-number" id="totalMarked">0</span>
+                                    <span class="stat-label">Total Marked</span>
+                                </div>
+                                <div class="paper-stat-card highlight">
+                                    <span class="stat-number" id="toStudyCount">0</span>
+                                    <span class="stat-label">To Study</span>
+                                </div>
+                                <div class="paper-stat-card">
+                                    <span class="stat-number" id="readCount">0</span>
+                                    <span class="stat-label">Read</span>
+                                </div>
+                            </div>
+                            <div class="export-section">
+                                <h3>Export Papers</h3>
+                                <div class="export-filters">
+                                    <label class="export-filter-label">
+                                        <input type="radio" name="exportFilter" value="to_study" checked>
+                                        <span>待研究 (To Study)</span>
+                                    </label>
+                                    <label class="export-filter-label">
+                                        <input type="radio" name="exportFilter" value="read">
+                                        <span>已读 (Read)</span>
+                                    </label>
+                                    <label class="export-filter-label">
+                                        <input type="radio" name="exportFilter" value="all">
+                                        <span>全部 (All)</span>
+                                    </label>
+                                </div>
+                                <div class="export-format-selector">
+                                    <label>Format:</label>
+                                    <select id="exportFormat" class="export-select">
+                                        <option value="markdown">Markdown (.md)</option>
+                                        <option value="json">JSON (.json)</option>
+                                        <option value="csv">CSV (.csv)</option>
+                                        <option value="bibtex">BibTeX (.bib)</option>
+                                    </select>
+                                </div>
+                                <div class="export-actions">
+                                    <button id="exportPapersBtn" class="export-button primary">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/>
+                                        </svg>
+                                        Export Papers
+                                    </button>
+                                    <button id="exportAllMarksBtn" class="export-button">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+                                        </svg>
+                                        Export All Marks
+                                    </button>
+                                </div>
+                                <div class="export-note">
+                                    <p>💡 Tip: Exported files contain paper metadata, links, and your notes. Perfect for literature review!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="settings-section">
                         <h2 class="keyword-section-title">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

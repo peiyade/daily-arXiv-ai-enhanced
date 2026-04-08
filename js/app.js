@@ -432,6 +432,43 @@ async function fetchGitHubStats() {
 }
 
 function initEventListeners() {
+  // 筛选下拉菜单事件
+  const filterBtn = document.getElementById('filterBtn');
+  const filterDropdown = document.getElementById('filterDropdown');
+  
+  if (filterBtn && filterDropdown) {
+    filterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      filterDropdown.classList.toggle('active');
+      updateFilterOptions();
+    });
+    
+    // 点击外部关闭下拉菜单
+    document.addEventListener('click', (e) => {
+      if (!filterDropdown.contains(e.target) && e.target !== filterBtn) {
+        filterDropdown.classList.remove('active');
+      }
+    });
+    
+    // 筛选选项点击事件
+    filterDropdown.querySelectorAll('.filter-option[data-filter]').forEach(option => {
+      option.addEventListener('click', () => {
+        const filter = option.dataset.filter;
+        setPaperFilter(filter);
+        filterDropdown.classList.remove('active');
+      });
+    });
+    
+    // 快速导出按钮
+    const quickExportBtn = document.getElementById('quickExportBtn');
+    if (quickExportBtn) {
+      quickExportBtn.addEventListener('click', () => {
+        quickExportCurrentList();
+        filterDropdown.classList.remove('active');
+      });
+    }
+  }
+  
   // 日期选择器相关的事件监听
   const calendarButton = document.getElementById('calendarButton');
   calendarButton.addEventListener('click', (e) => {
@@ -855,6 +892,14 @@ function renderPapers() {
     });
   } else if (paperData[currentCategory]) {
     papers = paperData[currentCategory];
+  }
+  
+  // 根据标记状态筛选论文
+  if (currentFilter !== 'all') {
+    papers = papers.filter(paper => {
+      const mark = getPaperMark(paper.id);
+      return mark.status === currentFilter;
+    });
   }
   
   // 创建匹配论文的集合
@@ -1438,6 +1483,150 @@ function clearAllAuthors() {
   renderAuthorTags();
   // 重新渲染论文列表，移除作者匹配的高亮和优先排序
   renderPapers();
+}
+
+// 更新筛选下拉菜单选项状态
+function updateFilterOptions() {
+  const dropdown = document.getElementById('filterDropdown');
+  if (!dropdown) return;
+  
+  dropdown.querySelectorAll('.filter-option[data-filter]').forEach(option => {
+    option.classList.toggle('active', option.dataset.filter === currentFilter);
+  });
+}
+
+// 设置论文筛选
+function setPaperFilter(filter) {
+  currentFilter = filter;
+  renderPapers();
+  
+  // 显示提示
+  const filterNames = {
+    'all': 'All Papers',
+    'to_study': 'To Study',
+    'read': 'Read'
+  };
+  showNotification(`Filter: ${filterNames[filter]}`, 'info');
+}
+
+// 快速导出当前列表
+function quickExportCurrentList() {
+  let papersToExport = [];
+  
+  if (currentFilter === 'all') {
+    papersToExport = currentFilteredPapers;
+  } else {
+    // 根据标记状态筛选
+    papersToExport = currentFilteredPapers.filter(paper => {
+      const mark = getPaperMark(paper.id);
+      return mark.status === currentFilter;
+    });
+  }
+  
+  if (papersToExport.length === 0) {
+    showNotification('No papers to export in current view.', 'info');
+    return;
+  }
+  
+  // 导出为Markdown格式
+  const date = new Date().toISOString().split('T')[0];
+  const filterName = currentFilter === 'to_study' ? 'to-study' : currentFilter === 'read' ? 'read' : 'all';
+  
+  let markdown = `# 论文列表导出\n\n`;
+  markdown += `**导出日期:** ${date}\n`;
+  markdown += `**筛选条件:** ${currentFilter === 'all' ? '全部' : currentFilter === 'to_study' ? '待研究' : '已读'}\n`;
+  markdown += `**论文数量:** ${papersToExport.length} 篇\n\n`;
+  markdown += `---\n\n`;
+  
+  papersToExport.forEach((paper, index) => {
+    const mark = getPaperMark(paper.id);
+    const priority = mark.priority ? '⭐'.repeat(mark.priority) : '';
+    const status = mark.status === 'to_study' ? '🔵 待研究' : 
+                   mark.status === 'read' ? '✅ 已读' : '⚪ 未标记';
+    
+    markdown += `## ${index + 1}. ${paper.title}\n\n`;
+    markdown += `- **状态:** ${status} ${priority}\n`;
+    markdown += `- **作者:** ${paper.authors}\n`;
+    markdown += `- **链接:** ${paper.url}\n`;
+    markdown += `- **PDF:** ${paper.url.replace('abs', 'pdf')}\n`;
+    
+    if (mark.tags && mark.tags.length > 0) {
+      markdown += `- **标签:** ${mark.tags.join(', ')}\n`;
+    }
+    
+    if (mark.notes) {
+      markdown += `- **笔记:** ${mark.notes}\n`;
+    }
+    
+    markdown += `\n---\n\n`;
+  });
+  
+  // 下载文件
+  const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `papers-${filterName}-${date}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  showNotification(`Exported ${papersToExport.length} papers!`, 'success');
+}
+
+// 显示通知
+function showNotification(message, type = 'success') {
+  // 检查是否已存在通知元素
+  let notification = document.querySelector('.notification-toast');
+  
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.className = 'notification-toast';
+    document.body.appendChild(notification);
+  }
+  
+  // 根据类型设置样式
+  let bgColor = 'var(--primary-color)';
+  if (type === 'success') bgColor = '#10b981';
+  if (type === 'info') bgColor = '#3b82f6';
+  if (type === 'error') bgColor = '#ef4444';
+  
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: ${bgColor};
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    z-index: 10000;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+  `;
+  
+  // 显示通知
+  setTimeout(() => {
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+  }, 10);
+  
+  // 3秒后隐藏
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 3000);
 }
 
 // 切换PDF预览器大小

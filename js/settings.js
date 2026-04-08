@@ -2,6 +2,7 @@
 let promptsConfig = null;
 let originalConfig = null;  // 保存原始配置用于重置
 let currentTemplateName = 'default';
+let paperMarks = {}; // 存储论文标记数据
 
 document.addEventListener('DOMContentLoaded', () => {
   initSettings();
@@ -9,6 +10,228 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchGitHubStats();
   // 加载提示词配置
   loadPromptsConfig();
+  // 加载论文标记数据并更新统计
+  loadPaperMarks();
+});
+
+// ========== 论文标记管理功能 ==========
+
+// 加载论文标记数据
+function loadPaperMarks() {
+  const saved = localStorage.getItem('paperMarks');
+  if (saved) {
+    try {
+      paperMarks = JSON.parse(saved);
+      console.log('论文标记数据已加载:', Object.keys(paperMarks).length, '篇');
+      updatePaperStats();
+    } catch (e) {
+      console.error('加载论文标记失败:', e);
+      paperMarks = {};
+    }
+  }
+}
+
+// 更新论文统计
+function updatePaperStats() {
+  const marks = Object.values(paperMarks);
+  const total = marks.length;
+  const toStudy = marks.filter(m => m.status === 'to_study').length;
+  const read = marks.filter(m => m.status === 'read').length;
+
+  const totalEl = document.getElementById('totalMarked');
+  const toStudyEl = document.getElementById('toStudyCount');
+  const readEl = document.getElementById('readCount');
+
+  if (totalEl) totalEl.textContent = total;
+  if (toStudyEl) toStudyEl.textContent = toStudy;
+  if (readEl) readEl.textContent = read;
+}
+
+// 根据筛选条件获取论文列表
+function getFilteredPapers(filter) {
+  const papers = [];
+  Object.entries(paperMarks).forEach(([paperId, mark]) => {
+    if (filter === 'all' || mark.status === filter) {
+      papers.push({
+        id: paperId,
+        ...mark
+      });
+    }
+  });
+  return papers;
+}
+
+// 导出为Markdown格式
+function exportToMarkdown(papers) {
+  const date = new Date().toISOString().split('T')[0];
+  let markdown = `# 论文列表导出\n\n`;
+  markdown += `**导出日期:** ${date}\n`;
+  markdown += `**论文数量:** ${papers.length} 篇\n\n`;
+  markdown += `---\n\n`;
+
+  papers.forEach((paper, index) => {
+    const priority = paper.priority ? '⭐'.repeat(paper.priority) : '';
+    const status = paper.status === 'to_study' ? '🔵 待研究' : 
+                   paper.status === 'read' ? '✅ 已读' : '⚪ 未标记';
+    
+    markdown += `## ${index + 1}. ${paper.id}\n\n`;
+    markdown += `- **状态:** ${status} ${priority}\n`;
+    markdown += `- **链接:** https://arxiv.org/abs/${paper.id}\n`;
+    markdown += `- **PDF:** https://arxiv.org/pdf/${paper.id}.pdf\n`;
+    
+    if (paper.tags && paper.tags.length > 0) {
+      markdown += `- **标签:** ${paper.tags.join(', ')}\n`;
+    }
+    
+    if (paper.notes) {
+      markdown += `- **笔记:**\n\n  ${paper.notes.split('\n').join('\n  ')}\n`;
+    }
+    
+    if (paper.markedAt) {
+      markdown += `- **标记时间:** ${new Date(paper.markedAt).toLocaleString()}\n`;
+    }
+    
+    markdown += `\n---\n\n`;
+  });
+
+  return markdown;
+}
+
+// 导出为CSV格式
+function exportToCSV(papers) {
+  const headers = ['ID', 'Status', 'Priority', 'Tags', 'Notes', 'Marked At', 'ArXiv URL', 'PDF URL'];
+  const rows = papers.map(paper => {
+    const status = paper.status === 'to_study' ? 'To Study' : 
+                   paper.status === 'read' ? 'Read' : 'Unread';
+    return [
+      paper.id,
+      status,
+      paper.priority || 0,
+      (paper.tags || []).join('; '),
+      (paper.notes || '').replace(/"/g, '""'),
+      paper.markedAt ? new Date(paper.markedAt).toISOString() : '',
+      `https://arxiv.org/abs/${paper.id}`,
+      `https://arxiv.org/pdf/${paper.id}.pdf`
+    ];
+  });
+
+  // 添加BOM以支持中文
+  const BOM = '\uFEFF';
+  const csv = BOM + [headers.join(','), ...rows.map(row => 
+    row.map(cell => `"${cell}"`).join(',')
+  )].join('\n');
+  
+  return csv;
+}
+
+// 导出为BibTeX格式
+function exportToBibTeX(papers) {
+  return papers.map(paper => {
+    const year = paper.id.substring(0, 4);
+    const citeKey = `arxiv:${paper.id}`;
+    
+    let bib = `@article{${citeKey},\n`;
+    bib += `  title = {${paper.id}},\n`;
+    bib += `  journal = {arXiv preprint},\n`;
+    bib += `  year = {${year}},\n`;
+    bib += `  url = {https://arxiv.org/abs/${paper.id}},\n`;
+    bib += `  note = {Status: ${paper.status}${paper.priority ? ', Priority: ' + paper.priority : ''}${paper.notes ? '\\nNotes: ' + paper.notes : ''}}\n`;
+    bib += `}\n`;
+    return bib;
+  }).join('\n');
+}
+
+// 导出论文主函数
+function exportPapers() {
+  const filterEl = document.querySelector('input[name="exportFilter"]:checked');
+  const formatEl = document.getElementById('exportFormat');
+  
+  if (!filterEl || !formatEl) return;
+  
+  const filter = filterEl.value;
+  const format = formatEl.value;
+  const papers = getFilteredPapers(filter);
+  
+  if (papers.length === 0) {
+    showNotification('No papers to export for the selected filter.', 'info');
+    return;
+  }
+  
+  let content, filename, mimeType;
+  const date = new Date().toISOString().split('T')[0];
+  const filterName = filter === 'to_study' ? 'to-study' : filter === 'read' ? 'read' : 'all';
+  
+  switch (format) {
+    case 'markdown':
+      content = exportToMarkdown(papers);
+      filename = `papers-${filterName}-${date}.md`;
+      mimeType = 'text/markdown;charset=utf-8';
+      break;
+    case 'csv':
+      content = exportToCSV(papers);
+      filename = `papers-${filterName}-${date}.csv`;
+      mimeType = 'text/csv;charset=utf-8';
+      break;
+    case 'bibtex':
+      content = exportToBibTeX(papers);
+      filename = `papers-${filterName}-${date}.bib`;
+      mimeType = 'text/plain;charset=utf-8';
+      break;
+    case 'json':
+    default:
+      content = JSON.stringify(papers, null, 2);
+      filename = `papers-${filterName}-${date}.json`;
+      mimeType = 'application/json;charset=utf-8';
+      break;
+  }
+  
+  // 创建并下载文件
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  showNotification(`Exported ${papers.length} papers to ${format.toUpperCase()}!`, 'success');
+}
+
+// 导出所有标记数据（原始JSON）
+function exportAllMarks() {
+  if (Object.keys(paperMarks).length === 0) {
+    showNotification('No marked papers to export.', 'info');
+    return;
+  }
+  
+  const dataStr = JSON.stringify(paperMarks, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `paper-marks-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  showNotification('All paper marks exported successfully!', 'success');
+}
+
+// 绑定导出相关事件
+document.addEventListener('DOMContentLoaded', () => {
+  const exportPapersBtn = document.getElementById('exportPapersBtn');
+  const exportAllMarksBtn = document.getElementById('exportAllMarksBtn');
+  
+  if (exportPapersBtn) {
+    exportPapersBtn.addEventListener('click', exportPapers);
+  }
+  
+  if (exportAllMarksBtn) {
+    exportAllMarksBtn.addEventListener('click', exportAllMarks);
+  }
 });
 
 // 初始化设置，从localStorage加载已保存的设置

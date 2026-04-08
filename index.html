@@ -68,6 +68,32 @@
                 </div>
                 
                 <div class="header-controls">
+                    <div class="filter-selector">
+                        <button id="filterBtn" class="icon-button" title="Filter Papers">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" fill="currentColor"/>
+                            </svg>
+                        </button>
+                        <div class="filter-dropdown" id="filterDropdown">
+                            <div class="filter-option active" data-filter="all">
+                                <span class="filter-icon">📋</span>
+                                <span class="filter-text">All Papers</span>
+                            </div>
+                            <div class="filter-option" data-filter="to_study">
+                                <span class="filter-icon">🔵</span>
+                                <span class="filter-text">To Study</span>
+                            </div>
+                            <div class="filter-option" data-filter="read">
+                                <span class="filter-icon">✅</span>
+                                <span class="filter-text">Read</span>
+                            </div>
+                            <div class="filter-divider"></div>
+                            <div class="filter-option" id="quickExportBtn">
+                                <span class="filter-icon">📥</span>
+                                <span class="filter-text">Export List</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="date-selector">
                         <div class="date-display">
                             <span id="currentDate">Loading...</span>

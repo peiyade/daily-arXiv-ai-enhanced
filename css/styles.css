@@ -276,7 +276,71 @@ header {
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+}
+
+/* 筛选下拉菜单样式 */
+.filter-selector {
+  position: relative;
+}
+
+.filter-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: var(--card-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.filter-dropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.filter-option:hover {
+  background-color: var(--background-hover);
+}
+
+.filter-option.active {
+  background-color: rgba(102, 126, 234, 0.1);
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.filter-icon {
+  font-size: 16px;
+}
+
+.filter-text {
+  flex: 1;
+}
+
+.filter-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 8px 0;
 }
 
 .date-selector {
