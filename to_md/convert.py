@@ -46,9 +46,9 @@ if __name__ == "__main__":
                     url=item['abs'],
                     tldr=item['AI']['tldr'],
                     motivation=item['AI']['motivation'],
-                    method=item['AI']['method'],
-                    result=item['AI']['result'],
-                    conclusion=item['AI']['conclusion'],
+                    techniques=item['AI']['techniques'],
+                    main_theorems=item['AI']['main_theorems'],
+                    significance=item['AI']['significance'],
                     cate=item['categories'][0],
                     idx=next(idx)
                 )

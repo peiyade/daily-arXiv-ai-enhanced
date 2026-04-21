@@ -12,3 +12,9 @@ ai/.env
 test/*
 .idea/
 .cursorrules
+
+# Historical data
+arxiv_history_metadata/
+
+# Progress files
+scripts/.enhance_progress.json

@@ -10,11 +10,11 @@ TL;DR: {tldr}
   <summary>Details</summary>
 Motivation: {motivation}
 
-Method: {method}
+Techniques: {techniques}
 
-Result: {result}
+Main Theorems: {main_theorems}
 
-Conclusion: {conclusion}
+Significance: {significance}
 
 Abstract: {summary}
 

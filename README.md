@@ -1,6 +1,8 @@
-# 🚀 daily-arXiv-ai-enhanced
+# 🚀 daily-arXiv-ai-enhanced (math.AP Fork)
 
 > Your AI-powered daily digest of arXiv papers - making research reading smarter and more personalized!
+
+> **This is a modified version of [dw-dengwei/daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), customized to focus on the **math.AP (Analysis of PDEs)** category. All credit for the original tool goes to the original author and contributors. See [NOTICE](NOTICE) for details.
 
 This innovative tool transforms how you stay updated with arXiv papers by combining automated crawling with AI-powered summarization.
 
@@ -47,9 +49,9 @@ This innovative tool transforms how you stay updated with arXiv papers by combin
 
 
 # How to use
-This repo will daily crawl arXiv papers about **cs.CV, cs.GR, cs.CL and cs.AI**, and use **DeepSeek** to summarize the papers in **Chinese**.
+This repo will daily crawl arXiv papers about **math.AP** (Analysis of PDEs), and use **DeepSeek** to summarize the papers in **Chinese**.
 If you wish to crawl other arXiv categories, use other LLMs, or other languages, please follow the instructions.
-Otherwise, you can directly use this repo in https://dw-dengwei.github.io/daily-arXiv-ai-enhanced/. Please star it if you like :)
+Otherwise, you can directly use this repo in https://dw-dengwei.github.io/daily-arXiv-ai-enhanced/. Please star the original repo if you like :)
 
 **Instructions:**
 1. Fork this repo to your own account
@@ -58,7 +60,7 @@ Otherwise, you can directly use this repo in https://dw-dengwei.github.io/daily-
 4. Create two repository secrets named `OPENAI_API_KEY` and `OPENAI_BASE_URL`, and input corresponding values.
 5. Go to Variables. Variables are shown as plain text and are used for non-sensitive data
 6. Create the following repository variables:
-   1. `CATEGORIES`: separate the categories with ",", such as "cs.CL, cs.CV"
+   1. `CATEGORIES`: separate the categories with ",", such as "math.AP"
    2. `LANGUAGE`: such as "Chinese" or "English"
    3. `MODEL_NAME`: such as "deepseek-chat"
    4. `EMAIL`: your email for push to GitHub
@@ -67,12 +69,26 @@ Otherwise, you can directly use this repo in https://dw-dengwei.github.io/daily-
 8. You can manually click **Run workflow** to test if it works well (it may take about one hour). By default, this action will automatically run every day. You can modify it in `.github/workflows/run.yml`
 9. Set up GitHub pages: Go to your own repo -> Settings -> Pages. In `Build and deployment`, set `Source="Deploy from a branch"`, `Branch="main", "/(root)"`. Wait for a few minutes, go to https://\<username\>.github.io/daily-arXiv-ai-enhanced/. Please see this [issue](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced/issues/14) for more precise instructions.
 
+# Differences from the Original
+
+This fork modifies the original [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced) with the following changes:
+
+- **Default category**: Changed from `cs.CV, cs.GR, cs.CL, cs.AI` to `math.AP` (Analysis of PDEs)
+- **Data scope**: Contains historical data for math.AP papers dating back to 2007
+- **PDE-oriented keyword extraction**: Replaced generic NLP library with math/PDE term dictionary for statistics
+- **MSC classification**: Added MSC 2020 code field in AI-enhanced output for PDE type tagging
+
+All other features (AI summarization, GitHub Pages frontend, keyword highlighting, etc.) remain unchanged from the upstream project.
+
 # To-do list
 - [x] Feature: Replace markdown with GitHub pages front-end.
+- [x] Feature: PDE-oriented keyword extraction with math term dictionary
+- [x] Feature: MSC 2020 classification code in AI enhancement
 - [ ] Bugfix: In the statistics page, the number of papers for a keyword is not correct.
 - [ ] Bugfix: In the date picker, the date and week do not correspond.
-- [ ] Feature: Extract keywords with DeepSeek.
 - [x] Update instructions for fork users about how to use GitHub Pages.
+- [ ] [Planned] Full paper analysis for deeper mathematical insights (high token cost)
+- [ ] [Planned] Deep search: filter by equation type, function space, spatial dimension, etc.
 
 # Contributors
 Thanks to the following special contributors for contributing code, discovering bugs, and sharing useful ideas for this project!!!

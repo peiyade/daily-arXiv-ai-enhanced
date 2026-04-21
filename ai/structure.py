@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 import re
 
 class Structure(BaseModel):
@@ -8,3 +8,4 @@ class Structure(BaseModel):
     method: str = Field(description="method of this paper")
     result: str = Field(description="result of this paper")
     conclusion: str = Field(description="conclusion of this paper")
+    msc_code: str = Field(description="最相关的 MSC 2020 分类代码（如 35Bxx, 35Q30, 35K55 等），基于论文内容判断，只给出一个最相关的主代码")

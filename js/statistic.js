@@ -122,18 +122,26 @@ async function fetchAvailableDates() {
     const text = await response.text();
     const files = text.trim().split('\n');
 
-    const dateRegex = /(\d{4}-\d{2}-\d{2})_AI_enhanced_Chinese\.jsonl/;
-    const dates = [];
+    const allDates = new Set();
+    const aiDates = new Set();
+
     files.forEach(file => {
-      const match = file.match(dateRegex);
-      if (match && match[1]) {
-        dates.push(match[1]);
+      const aiMatch = file.match(/(\d{4}-\d{2}-\d{2})_AI_enhanced_\w+\.jsonl/);
+      if (aiMatch && aiMatch[1]) {
+        aiDates.add(aiMatch[1]);
+        allDates.add(aiMatch[1]);
+        return;
+      }
+      const rawMatch = file.match(/^(\d{4}-\d{2}-\d{2})\.jsonl$/);
+      if (rawMatch && rawMatch[1]) {
+        allDates.add(rawMatch[1]);
       }
     });
-    availableDates = [...new Set(dates)];
+
+    availableDates = [...allDates];
     availableDates.sort((a, b) => new Date(b) - new Date(a));
 
-    initDatePicker(); // Assuming this function uses availableDates
+    initDatePicker();
 
     return availableDates;
   } catch (error) {
@@ -240,8 +248,26 @@ async function loadPapersByDateRange(startDate, endDate) {
     allPapersData = []; // 重置全局论文数据
     
     for (const date of validDatesInRange) {
-      const response = await fetch(`data/${date}_AI_enhanced_Chinese.jsonl`);
-      const text = await response.text();
+      let text = null;
+      
+      try {
+        const resp = await fetch(`data/${date}_AI_enhanced_Chinese.jsonl`);
+        if (resp.ok) {
+          text = await resp.text();
+        }
+      } catch (e) { /* fallback */ }
+      
+      if (!text) {
+        try {
+          const resp = await fetch(`data/${date}.jsonl`);
+          if (resp.ok) {
+            text = await resp.text();
+          }
+        } catch (e) { /* skip */ }
+      }
+      
+      if (!text) continue;
+      
       const dataPapers = parseJsonlData(text, date);
       
       // 合并数据
@@ -257,80 +283,188 @@ async function loadPapersByDateRange(startDate, endDate) {
     
     paperData = allPaperData;
 
-    // 提取所有论文标题
-    const allTitle = [];
+    // 提取所有论文标题和摘要
+    const allTexts = [];
     Object.keys(paperData).forEach(category => {
       paperData[category].forEach(paper => {
-        allTitle.push(paper.title);
+        allTexts.push(paper.title + '. ' + (paper.details || paper.summary || ''));
       });
     });
 
-    // 提取关键词并进行总结
     const extractKeywords = (text) => {
-      // 移除特殊字符和多余空格
-      const cleanText = text.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
-      
-      // 使用 compromise 进行文本处理
-      const doc = nlp(cleanText);
-      
-      // 提取名词短语和重要词汇
-      const terms = new Set();
-      
-      // 提取名词短语
-      doc.match('#Noun+').forEach(match => {
-        const phrase = match.text().toLowerCase();
-        if (phrase.split(' ').length <= 3) { // 最多3个词的短语
-          terms.add(phrase);
+      const lowerText = text.toLowerCase();
+
+      const pdeTerms = [
+        'navier-stokes', 'schrödinger', 'schrodinger', 'kdv', 'korteweg-de vries',
+        'euler equations', 'euler system', 'maxwell equations', 'maxwell system',
+        'heat equation', 'wave equation', 'laplace equation', 'poisson equation',
+        'boltzmann equation', 'boltzmann', 'vlasov equation', 'vlasov',
+        'cauchy-riemann', 'allen-cahn', 'cahn-hilliard', 'kuramoto-sivashinsky',
+        'benjamin-bona-mahony', 'bbm', 'sine-gordon', 'klein-gordon',
+        'zakharov', 'kawahara', 'benjamin-ono',
+        'porous medium', 'fast diffusion', 'p-laplacian', 'p-laplace',
+        ' reaction-diffusion', 'convection-diffusion',
+        'stokes equations', 'stokes system', 'stokes flow',
+        'mhd', 'magnetohydrodynamic',
+        'compressible flow', 'incompressible flow',
+        'free boundary', 'moving boundary', 'stefan problem',
+        'dirichlet problem', 'neumann problem', 'robin boundary',
+        'fractional laplacian', 'fractional diffusion', 'fractional pde',
+        'nonlocal diffusion', 'nonlocal equation',
+        'porous medium equation', 'rosseland', 'radiative transfer',
+        'mean field', 'mean-field', 'fokker-planck', 'master equation',
+        'hamilton-jacobi', 'hamilton-jacobi-bellman', 'hjb',
+        'monge-ampère', 'monge-ampere',
+        'prescribed curvature', 'mean curvature', 'minimal surface',
+        'plate equation', 'plate system', 'beam equation',
+        'schrödinger-poisson', 'schrödinger-maxwell',
+        'elasticity', 'elastic', 'thermoelastic',
+        'obstacle problem', 'signorini', 'contact problem',
+        'optimal control', 'optimal shape', 'shape optimization',
+        'inverse problem', 'calderón problem', 'calderon problem',
+        'unique continuation', 'carleman estimate', 'carleman inequality',
+        'strichartz estimate', 'dispersive estimate', 'smoothing effect',
+        'energy estimate', 'a priori estimate', 'a-priori estimate',
+        'bootstrap', 'continuity argument',
+        'sobolev space', 'besov space', 'tribel-lizorkin', 'hardy space',
+        'bmo', 'morrey space', 'campanato',
+        'holder', 'hölder', 'lipshitz', 'lipschitz',
+        'weak solution', 'strong solution', 'mild solution',
+        'classical solution', 'viscosity solution', 'entropy solution',
+        'renormalized solution', 'distributional solution',
+        'well-posedness', 'ill-posed', 'global existence', 'local existence',
+        'blow-up', 'blowup', 'finite time blow', 'singularity formation',
+        'scattering', 'asymptotic behavior', 'long-time behavior',
+        'stability', 'instability', 'orbital stability',
+        'global regularity', 'regularity', 'partial regularity',
+        'parabolic', 'elliptic', 'hyperbolic', 'dispersive',
+        'semilinear', 'quasilinear', 'fully nonlinear',
+        'degenerate', 'singular',
+        'galerkin', 'fixed point', 'contraction mapping',
+        'variational method', 'minimax', 'mountain pass',
+        'eigenvalue', 'eigenfunction', 'spectral', 'spectrum',
+        'maximum principle', 'comparison principle',
+        'hopf lemma', 'harnack inequality', 'liouville theorem',
+        'schauder estimate', 'calderon-zygmund', 'calderón-zygmund',
+        'regularity estimate', 'interior estimate',
+        'homogenization', 'gamma-convergence', 'gamma-convergence',
+        'multiscale', 'oscillating coefficients',
+        'nash inequality', 'logarithmic sobolev', 'gagliardo-nirenberg',
+        'hardy inequality', 'poincaré inequality', 'poincare inequality',
+        'cauchy problem', 'initial value problem', 'initial-boundary',
+        'mixed boundary', 'periodic boundary',
+        'sobolev embedding', 'sobolev inequality', 'trace theorem',
+        'compactness', 'weak convergence', 'weak compactness',
+        'convex integration', 'onsager', 'turbulence', 'cascade',
+        'rio de la plata', 'boussinesq',
+        'riemann problem', 'conservation law', 'hyperbolic conservation',
+        'shock', 'rarefaction', 'entropy condition',
+        'yamabe', 'prescribed scalar curvature',
+        'semigroup', 'analytic semigroup', 'generation',
+        'fourier transform', 'fourier multiplier', 'oscillatory integral',
+        'littlewood-paley', 'dyadic decomposition',
+        'microlocal', 'pseudodifferential', 'wave front set',
+        'liouville type', 'non-existence',
+        'turing instability', 'turing pattern', 'pattern formation',
+        'gradual', 'water wave', 'free surface', 'interface',
+        'domain decomposition', 'cap problem',
+        'navier', 'slip boundary', 'no-slip',
+        'rellich', 'trace class',
+        'geometric pde', 'gauss curvature', 'scalar curvature',
+        'front propagation', 'level set', 'phase field',
+        'brownian motion', 'stochastic pde', 'spde',
+        'ito', 'stochastic calculus', 'martingale',
+        'large deviation', 'hydrodynamic limit',
+        'kinetic equation', 'kinetic theory', 'boltzmann',
+        'grenier', 'knudsen',
+        'backstepping', 'boundary control', 'exact controllability',
+        'null controllability', 'observability', 'adjoint',
+        'sensitivity', 'calculus of variations',
+        'direct method', 'lower semicontinuity',
+        'relaxation', 'quasiconvexity', 'rank-one convexity',
+        'young measure', 'gradient young',
+        'capacity', 'potential theory', 'equilibrium measure',
+        'harmonic', 'subharmonic', 'superharmonic',
+        'dirichlet energy', 'green function', 'poisson kernel',
+        'helicity', 'vorticity', 'vortex', 'vortices',
+        'stokes paradox', 'stallings',
+        'bifurcation', 'linearization', 'stability analysis',
+        'rotating', 'couette', 'taylor', 'taylor-couette',
+        'kolmogorov flow', 'channel flow', 'pipe flow',
+        'rayleigh', 'benard', 'rayleigh-benard',
+        'mach', 'reynolds', 'prandtl', 'boundary layer',
+        'energy dissipation', 'enstrophy', 'palinstrophy',
+        'scaling', 'self-similar', 'selfsimilar',
+        'kato', 'weissler', 'brezis', 'caffarelli', 'kohn', 'nirenberg',
+        'gagliardo', 'nash', 'moser', 'de giorgi', 'nirenberg',
+      ];
+
+      const found = new Map();
+
+      pdeTerms.forEach(term => {
+        const regex = new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[-\s]+/g, '[-\\s]+') + '\\b', 'gi');
+        const matches = lowerText.match(regex);
+        if (matches) {
+          const normalized = term.toLowerCase().replace(/[-\s]+/g, ' ');
+          found.set(normalized, (found.get(normalized) || 0) + matches.length);
         }
       });
-      
-      // 提取形容词+名词组合
-      doc.match('(#Adjective+ #Noun+)').forEach(match => {
-        const phrase = match.text().toLowerCase();
-        if (phrase.split(' ').length <= 3) {
-          terms.add(phrase);
-        }
-      });
-      
-      // 定义停用词
-      const stopWords = new Set([
-        'the', 'is', 'at', 'which', 'and', 'or', 'in', 'to', 'for', 'of', 
-        'with', 'by', 'on', 'this', 'that', 'our', 'method', 'based', 
-        'towards', 'via', 'multi', 'text', 'using', 'aware', 'data', 'from',
-        'paper', 'propose', 'proposed', 'approach', 'model', 'system', 
-        'framework', 'results', 'show', 'demonstrates', 'experimental', 
-        'experiments', 'evaluation', 'performance', 'state', 'art', 'sota',
-        'dataset', 'datasets', 'task', 'tasks', 'learning', 'neural', 
-        'network', 'networks', 'deep', 'machine', 'artificial', 'intelligence', 
-        'ai', 'ml', 'dl'
+
+      const mathWords = lowerText.match(/\b[a-z]{4,}\b/g) || [];
+      const wordFreq = {};
+      mathWords.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+
+      const mathStopWords = new Set([
+        'the', 'this', 'that', 'these', 'those', 'such', 'with', 'from',
+        'into', 'over', 'under', 'also', 'then', 'than', 'when', 'where',
+        'which', 'there', 'here', 'been', 'being', 'have', 'been', 'were',
+        'will', 'shall', 'would', 'could', 'should', 'about', 'after',
+        'more', 'most', 'very', 'some', 'each', 'every', 'both', 'between',
+        'through', 'during', 'before', 'while', 'since', 'until',
+        'paper', 'result', 'results', 'show', 'prove', 'consider', 'study',
+        'obtain', 'establish', 'present', 'discuss', 'give', 'given',
+        'using', 'used', 'use', 'based', 'propose', 'provide', 'assume',
+        'let', 'denote', 'define', 'satisfies', 'satisfy', 'suppose',
+        'equation', 'equations', 'solution', 'solutions', 'problem', 'problems',
+        'function', 'functions', 'system', 'systems', 'operator', 'operators',
+        'domain', 'boundary', 'initial', 'condition', 'conditions',
+        'existence', 'uniqueness', 'regularity', 'estimate', 'estimates',
+        'theorem', 'theorems', 'lemma', 'lemmas', 'proof', 'corollary',
+        'remark', 'note', 'section', 'case', 'cases', 'example',
+        'where', 'whose', 'well', 'known', 'first', 'second', 'third',
+        'main', 'new', 'general', 'global', 'local', 'time', 'space',
+        'term', 'terms', 'order', 'class', 'set', 'sets', 'number',
+        'however', 'furthermore', 'moreover', 'addition', 'particular',
+        'recent', 'previous', 'following', 'above', 'below',
+        'work', 'works', 'article', 'introduce', 'introduction',
+        'method', 'methods', 'approach', 'approaches', 'technique', 'techniques',
+        'analysis', 'theory', 'model', 'models', 'result', 'field', 'fields',
+        'point', 'points', 'value', 'values', 'region', 'regions', 'area',
+        'parameter', 'parameters', 'constant', 'constants', 'rate',
+        'related', 'important', 'interesting', 'natural', 'certain',
+        'sufficient', 'necessary', 'appropriate', 'corresponding',
+        'respect', 'respectively', 'left', 'right', 'positive', 'negative',
+        'real', 'non', 'one', 'two', 'three', 'four', 'dimensional',
+        'question', 'open', 'conjecture', 'subject', 'subjects',
+        'large', 'small', 'half', 'full', 'per', 'via', 'upon',
+        'under', 'within', 'without', 'along', 'among',
+        'arxiv', 'abstract', 'title', 'author', 'authors',
+        'subject', 'also', 'may', 'can', 'must', 'might',
+        'its', 'their', 'our', 'my', 'your', 'his', 'her',
+        'not', 'only', 'just', 'even', 'still', 'already',
+        'others', 'another', 'other', 'same', 'different',
+        'type', 'types', 'form', 'forms', 'expression',
+        'size', 'scale', 'level', 'degree', 'range',
+        'fact', 'thus', 'hence', 'therefore',
       ]);
-      
-      // 过滤停用词和短词
-      const filteredTerms = Array.from(terms).filter(term => {
-        const words = term.split(' ');
-        return words.every(word => word.length > 2) && 
-               !words.every(word => stopWords.has(word));
-      });
-      
-      // 统计词频
-      const termFreq = {};
-      filteredTerms.forEach(term => {
-        termFreq[term] = (termFreq[term] || 0) + 1;
-        // 给多词短语更高的权重
-        if (term.includes(' ')) {
-          termFreq[term] *= 1.5;
+
+      Object.entries(wordFreq).forEach(([word, freq]) => {
+        if (!mathStopWords.has(word) && freq >= 2 && word.length >= 5) {
+          found.set(word, (found.get(word) || 0) + freq);
         }
       });
-      
-      // 计算 TF 值（词频）
-      const tfScores = {};
-      const totalTerms = Object.values(termFreq).reduce((a, b) => a + b, 0);
-      Object.entries(termFreq).forEach(([term, freq]) => {
-        tfScores[term] = freq / totalTerms;
-      });
-      
-      // 按 TF 值排序并返回前10个关键词/短语
-      return Object.entries(tfScores)
+
+      return Array.from(found.entries())
         .sort(([,a], [,b]) => b - a)
         .slice(0, 10)
         .map(([term]) => term);
@@ -346,8 +480,8 @@ async function loadPapersByDateRange(startDate, endDate) {
     });
     
     // 按日期统计关键词
-    allTitle.forEach((abstract, index) => {
-      const date = validDatesInRange[Math.floor(index / (allTitle.length / validDatesInRange.length))];
+    allTexts.forEach((text, index) => {
+      const date = validDatesInRange[Math.floor(index / (allTexts.length / validDatesInRange.length))];
       const keywords = extractKeywords(abstract);
       
       keywords.forEach(keyword => {

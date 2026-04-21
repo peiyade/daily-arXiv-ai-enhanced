@@ -1932,6 +1932,84 @@ footer {
   }
 }
 
+.ai-update-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ai-update-button:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.7);
+}
+
+.ai-update-button:active {
+  transform: scale(0.97);
+}
+
+.ai-update-button.processing {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.ai-update-button svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .ai-update-text {
+    display: none;
+  }
+  .ai-update-button {
+    padding: 6px 8px;
+  }
+}
+
+.ai-update-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10000;
+  animation: toastFade 3s ease forwards;
+}
+
+.ai-update-toast.success {
+  background: rgba(16, 185, 129, 0.9);
+  color: white;
+}
+
+.ai-update-toast.info {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+}
+
+.ai-update-toast.error {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+}
+
+@keyframes toastFade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
 /* 匹配标记样式 */
 .match-badge {
   position: absolute;
@@ -1983,6 +2061,45 @@ footer {
     background-size: 12px 12px;
     top: -4px;
     right: -4px;
+  }
+}
+
+.ai-status-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 5;
+  cursor: help;
+}
+
+.ai-status-badge.ai-raw {
+  background: #8b5cf6;
+  color: white;
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+}
+
+.ai-status-badge.ai-enhanced {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+.list-view .ai-status-badge {
+  top: 8px;
+  left: 8px;
+}
+
+@media (max-width: 768px) {
+  .ai-status-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+    top: -4px;
+    left: -4px;
   }
 }
 
